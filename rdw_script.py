@@ -15,6 +15,7 @@ from shapely.geometry import shape
 import geopandas as gpd
 from shapely.geometry import Polygon
 import math
+import os
 
 def calculate_ndvi(input_tiff):
     with gdal.config_option("CHECK_DISK_FREE_SPACE", "NO"):
@@ -55,8 +56,12 @@ def calculate_brightness(input_tiff):
         return brightness_array
 
 def calculate_texture(input_tiff, output_tiff):
+    otb_path = os.getenv('OTB_BIN_PATH')
+    if not otb_path:
+        raise EnvironmentError("OTB_BIN_PATH environment variable is not set.")
+
     command = [
-        r"D:\TER_GRIMMER\OTB\bin\otbcli_HaralickTextureExtraction.bat",
+        os.path.join(otb_path, 'otbcli_HaralickTextureExtraction.bat'),
         "-in", input_tiff,
         "-channel", "2",
         "-parameters.xrad", "3",
@@ -176,103 +181,57 @@ def classify_correct_vectorize(raster_path, model_path, output_corrected_path, o
     with rasterio.open(output_corrected_path, 'w', **output_profile) as dst:
         dst.write(corrected_image.astype(rasterio.uint8), 1)
 
-    print("L'image corrigée a été enregistrée avec succès.")
-
-    with rasterio.open(output_corrected_path) as src:
-        image = src.read(1)
-        transform = src.transform
-
-    mask = image == value_to_keep
-    results = (
-        {'properties': {'value': v}, 'geometry': s}
-        for i, (s, v) in enumerate(
-            shapes(image, mask=mask, transform=transform))
-    )
-
+    src = rasterio.open(output_corrected_path)
     polygons = []
-    for result in results:
-        if result['properties']['value'] == value_to_keep:
+    for result in shapes(src.read(1), mask=src.read(1) == value_to_keep, connectivity=8):
+        if Polygon(shape(result[0])).area >= min_size:
             polygons.append(shape(result['geometry']))
 
     gdf = gpd.GeoDataFrame({'geometry': polygons}, crs=src.crs)
     gdf.to_file(output_shapefile)
-
     print(f"Les polygones avec la valeur {value_to_keep} ont été sauvegardés dans {output_shapefile}")
 
 def calculer_volume(shapefile_path):
-    # Charger le shapefile en tant que GeoDataFrame
     gdf = gpd.read_file(shapefile_path)
 
-    # Fonction pour calculer l'aire d'un polygone
     def calculer_aire(poly):
         return poly.area
 
-    # Fonction pour calculer l'emprise minimum orientée (minimum rotated bounding box)
     def calculer_emprise_minimum(poly):
-        # Calculer l'enveloppe convexe
         convex_hull = poly.convex_hull
-
-        # Calculer l'emprise minimum orientée (minimum rotated rectangle)
         min_rect = convex_hull.minimum_rotated_rectangle
-
-        # Calculer la longueur et la largeur du rectangle
         bounds = min_rect.bounds
         longueur = bounds[2] - bounds[0]
         largeur = bounds[3] - bounds[1]
-
-        # Calculer l'aire de l'emprise minimum
         aire_emprise = min_rect.area
-
         return longueur, largeur, aire_emprise
 
-    # Fonction pour calculer le volume
     def calculer_volume_polygone(poly, aire_polygone, longueur_emprise, largeur_emprise, aire_emprise):
-        # Calculer le facteur de correction c
         c = aire_polygone / aire_emprise
-
-        # Calculer le volume
         volume = c * longueur_emprise * (largeur_emprise ** 2) * (math.pi / 4)
-
         return volume
 
-    # Ajouter les colonnes pour stocker les résultats
     gdf['Aire_Polygone'] = gdf.geometry.apply(calculer_aire)
     gdf['Longueur_Emprise'], gdf['Largeur_Emprise'], gdf['Aire_Emprise'] = zip(*gdf.geometry.apply(calculer_emprise_minimum))
-
-    # Calculer le volume pour chaque polygone
     gdf['Volume'] = gdf.apply(lambda row: calculer_volume_polygone(row.geometry, row['Aire_Polygone'], row['Longueur_Emprise'], row['Largeur_Emprise'], row['Aire_Emprise']), axis=1)
-
-    # Appliquer les corrections aux valeurs calculées
     gdf['Aire_Polygone_Corrigée'] = 0.49 * gdf['Aire_Polygone'] ** 1.12
     gdf['Longueur_Emprise_Corrigée'] = 0.88 * gdf['Longueur_Emprise'] ** 1.02
     gdf['Largeur_Emprise_Corrigée'] = 0.48 * gdf['Largeur_Emprise'] ** 1.24
     gdf['Volume_Corrigé'] = 0.24 * gdf['Volume'] ** 1.17
 
-    # Demander à l'utilisateur s'il souhaite appliquer un filtre
     appliquer_filtre = input("Souhaitez-vous appliquer un filtre pour supprimer les polygones dont la longueur ou la largeur dépasse un seuil ? (oui/non): ")
-
     if appliquer_filtre.lower() == 'oui':
-        # Demander à l'utilisateur de saisir la taille du seuil
         seuil = float(input("Veuillez saisir la taille du seuil: "))
-
-        # Appliquer le filtre
         gdf = gdf[(gdf['Longueur_Emprise_Corrigée'] <= seuil) & (gdf['Largeur_Emprise_Corrigée'] <= seuil)]
-
-    # Supprimer les colonnes non corrigées du GeoDataFrame si nécessaire
     gdf.drop(columns=['Aire_Emprise', 'Aire_Polygone', 'Longueur_Emprise', 'Largeur_Emprise', 'Volume'], inplace=True)
-
-    # Renommer les colonnes corrigées si nécessaire
     gdf.rename(columns={
         'Aire_Polygone_Corrigée': 'Aire',
         'Longueur_Emprise_Corrigée': 'Longueur',
         'Largeur_Emprise_Corrigée': 'Largeur',
         'Volume_Corrigé': 'Volume'
     }, inplace=True)
-
-    # Créer une nouvelle couche shapefile avec les résultats
     output_shapefile = shapefile_path.replace('.shp', '_metric.shp')
     gdf.to_file(output_shapefile)
-
     return output_shapefile
 
 def main():
@@ -284,9 +243,7 @@ def main():
     parser.add_argument("output_corrected_path", help="Output corrected image path.")
     parser.add_argument("output_shapefile", help="Output shapefile path.")
     parser.add_argument("shapefile_path", help="Shapefile path for volume calculation.")
-
     args = parser.parse_args()
-
     ndvi = calculate_ndvi(args.input_tiff)
     brightness = calculate_brightness(args.input_tiff)
     calculate_texture(args.input_tiff, args.output_tiff_text)
