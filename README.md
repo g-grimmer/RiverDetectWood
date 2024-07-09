@@ -48,7 +48,7 @@ On MacOS
 ## Usage
 
 ```bash
-python rdw_script.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
+python rdw_tool.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
 ```
 
 
