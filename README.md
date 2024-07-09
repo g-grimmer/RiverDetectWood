@@ -6,7 +6,7 @@ This Python script allows to detect river dead wood using IGN BD Ortho data. Fir
 
 You need to install Git LFS to handle the random forest model file, which is essential for the tool to function properly.
 
-
+If you have not install Git LFS yet, you can follow the instructions on https://docs.github.com/fr/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
 
 ## Installation
 
