@@ -60,16 +60,19 @@ Firstly you have to install OTB from https://www.orfeo-toolbox.org/download/
 
 ### Set environment variable
 
+Here you must specify the path to the file otbcli_HaralickTextureExtraction.bat as follows. 
+This file is contained in the "bin" directory :
+
 On Windows 
 
 ```bash
-set OTB_BIN_PATH=C:\path\to\otb\bin
+set OTB_BIN_PATH=C:\path\to\otb\bin\otbcli_HaralickTextureExtraction.bat"
 ```
 
 On Linux
 
 ```bash
-export OTB_BIN_PATH=/path/to/otb/bin
+export OTB_BIN_PATH=/path/to/otb\bin\otbcli_HaralickTextureExtraction.bat"
 ```
 ## Usage
 
