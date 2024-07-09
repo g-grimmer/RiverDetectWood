@@ -18,9 +18,19 @@ You need to install Git LFS to handle the random forest model file, which is ess
 
 If you have not install Git LFS yet, you can follow the instructions on https://docs.github.com/fr/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
 
-### Git LFS setup
+### Download model file from Git LFS
 
+Retrive file : 
 
+```bash
+git lfs fetch
+```
+
+File checking :
+
+```bash
+git lfs ls-files
+```
 
 ## Installation
 
