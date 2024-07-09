@@ -5,5 +5,5 @@ This Python script allows to detect river dead wood using IGN BD Ortho data. Fir
 ## Tool application
 
 ```bash
-python satellite_processing_tool.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
+python rdw_script.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
 ```
