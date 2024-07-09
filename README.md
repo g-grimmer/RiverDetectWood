@@ -8,6 +8,7 @@ Firstly you need to clone the repository :
 
 ```bash
 git clone https://github.com/g-grimmer/RiverDetectWood.git
+cd RiverDetectWood
 ```
 
 ## Git Large File Storage
