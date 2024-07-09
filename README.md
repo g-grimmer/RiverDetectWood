@@ -2,11 +2,25 @@
 
 This Python script allows to detect river dead wood using IGN BD Ortho data. Firstly, it calculates indexes to be added to orthophotographs. Secondly it applies the random forest model on the orthophotographs. Finally, it output a shapefile layer with dead wood polygons and their metrics. 
 
-## Install Git Large File Storage
+## Clone the repository
+
+Firstly you need to clone the repository :
+
+```bash
+git clone https://github.com/g-grimmer/RiverDetectWood.git
+```
+
+## Git Large File Storage
+
+### Install Git LFS
 
 You need to install Git LFS to handle the random forest model file, which is essential for the tool to function properly.
 
 If you have not install Git LFS yet, you can follow the instructions on https://docs.github.com/fr/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
+
+### Git LFS setup
+
+
 
 ## Installation
 
