@@ -16,7 +16,7 @@ This Python script allows to detect river dead wood using IGN BD Ortho data. Fir
 
 ### Install Python Packages
 
-```sh
+```bash
 pip install gdal rasterio scipy joblib geopandas
 ```
 
@@ -24,5 +24,32 @@ pip install gdal rasterio scipy joblib geopandas
 
 ### Install OTB from website
 
-Firstly you have to install 
+Firstly you have to install OTB from https://www.orfeo-toolbox.org/download/
+
+### Set environment variable
+
+On Windows 
+
+```bash
+set OTB_BIN_PATH=C:\path\to\otb\bin
+```
+
+On Linux
+
+```bash
+export OTB_BIN_PATH=/path/to/otb/bin
+```
+
+On MacOS
+
+```bash
+```
+
+## Usage
+
+```bash
+python rdw_script.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
+```
+
+
 
