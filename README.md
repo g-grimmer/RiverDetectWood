@@ -12,28 +12,6 @@ git clone https://github.com/g-grimmer/RiverDetectWood.git
 cd RiverDetectWood
 ```
 
-## Git Large File Storage
-
-### Install Git LFS
-
-You need to install Git LFS to handle the random forest model file, which is essential for the tool to function properly.
-
-If you have not install Git LFS yet, you can follow the instructions on https://docs.github.com/fr/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
-
-### Download model file from Git LFS
-
-Retrive file : 
-
-```bash
-git lfs fetch
-```
-
-File checking :
-
-```bash
-git lfs ls-files
-```
-
 ## Installation
 
 ### Prerequisites
@@ -52,13 +30,13 @@ git lfs ls-files
 pip install gdal rasterio scipy joblib geopandas
 ```
 
-## Install Orfeo Toolbox (OTB)
+### Install Orfeo Toolbox (OTB)
 
-### Install OTB from website
+#### Install OTB from website
 
 Firstly you have to install OTB from https://www.orfeo-toolbox.org/download/
 
-### Set environment variable
+#### Set environment variable
 
 Here you must specify the path to the file otbcli_HaralickTextureExtraction.bat as follows. 
 This file is contained in the "bin" directory :
@@ -75,6 +53,13 @@ On Linux
 export OTB_BIN_PATH=/path/to/otb\bin\otbcli_HaralickTextureExtraction.bat"
 ```
 ## Usage
+
+### Downlead model file
+
+In this repository the model file is compressed.
+You will need to decompress it and specify its path in the tool
+
+### RiverDetectTool application
 
 ```bash
 python rdw_tool.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
