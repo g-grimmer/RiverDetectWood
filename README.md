@@ -79,6 +79,13 @@ export OTB_BIN_PATH=/path/to/otb\bin\otbcli_HaralickTextureExtraction.bat"
 ```bash
 python rdw_tool.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
 ```
-
+In this function :
+- `input_tiff_path` is the orthophotograph path
+- `output_tiff_text_pathù is the path of various textures calculated on the orthophotograph
+- `output_tiff_merge_pathù is the path of orthophotograph that contains all indexes
+- `model_path`is the random forest model file path
+- `output_corrected_path` is the classification result path
+- `output_shapefile_path` is the path of shapefile layer that contains the dead wood polygons without metrics
+- `shapefile_path`is the path of final shapefile layer that contains the dead wood polygons with their metrics
 
 
