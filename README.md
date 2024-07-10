@@ -49,8 +49,10 @@ set OTB_BIN_PATH=C:\path\to\otb\bin\otbcli_HaralickTextureExtraction.bat"
 
 On Linux
 
+On linux, you can follow the steps describe on OTB official website. Basically, you just need to source the environment profile before launching our script on the same terminal.
+
 ```bash
-export OTB_BIN_PATH=/path/to/otb\bin\otbcli_HaralickTextureExtraction.bat"
+source /Path/To/OTB_install/otbenv.profile
 ```
 ## Usage
 
