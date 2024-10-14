@@ -71,6 +71,8 @@ python rdw_tool.py input_tiff_path output_tiff_text_path keep_all_outputs
 ```
 In this function :
 - `input_tiff_path` is the orthophotograph path
+- `model_path`is the random forest model file path
+- `keep_all_outputs`, 1 to keep all outputs, 0 to delete them
 
 ## Citation
 
@@ -85,7 +87,3 @@ If you use this repository in your research, please cite the corresponding paper
   publisher={Elsevier}
 }
 ```
-- `model_path`is the random forest model file path
-- `keep_all_outputs`, 1 to keep all outputs, 0 to delete them
-
-
