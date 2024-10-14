@@ -80,7 +80,7 @@ If you use this repository in your research, please cite the corresponding paper
 
 ```
 @article{grimmer2024deadwood,
-  title={Where are the fences? A new deep learning approach to detect fences using multimodal aerial imagery},
+  title={...},
   author={Grimmer, Gauthier and Wenger, Romain and Chardon, Valentin},
   journal={SoftwareX},
   year={2024},
