@@ -60,7 +60,7 @@ source /Path/To/OTB_install/otbenv.profile
 ```
 ## Usage
 
-### Downlead model and test files
+### Download model and test files
 
 You can download the model file (.rf) and the test file (.tif) from this link: ...
 
