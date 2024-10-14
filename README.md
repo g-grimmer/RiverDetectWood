@@ -60,23 +60,18 @@ source /Path/To/OTB_install/otbenv.profile
 ```
 ## Usage
 
-### Downlead model file
+### Downlead model and test files
 
-In this repository the model file is compressed.
-You will need to decompress it and specify its path in the tool
+You can download the model file (.rf) and the test file (.tif) from this link: ...
 
 ### RiverDetectTool application
 
 ```bash
-python rdw_tool.py input_tiff_path output_tiff_text_path output_tiff_merge_path model_path output_corrected_path output_shapefile_path shapefile_path
+python rdw_tool.py input_tiff_path output_tiff_text_path keep_all_outputs
 ```
 In this function :
 - `input_tiff_path` is the orthophotograph path
-- `output_tiff_text_path` is the path of various textures calculated on the orthophotograph
-- `output_tiff_merge_path` is the path of orthophotograph that contains all indexes
 - `model_path`is the random forest model file path
-- `output_corrected_path` is the classification result path
-- `output_shapefile_path` is the path of shapefile layer that contains the dead wood polygons without metrics
-- `shapefile_path`is the path of final shapefile layer that contains the dead wood polygons with their metrics
+- `keep_all_outputs`, 1 to keep all outputs, 0 to delete them
 
 
