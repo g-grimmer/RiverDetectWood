@@ -71,6 +71,20 @@ python rdw_tool.py input_tiff_path output_tiff_text_path keep_all_outputs
 ```
 In this function :
 - `input_tiff_path` is the orthophotograph path
+
+## Citation
+
+If you use this repository in your research, please cite the corresponding paper:
+
+```
+@article{grimmer2024deadwood,
+  title={Where are the fences? A new deep learning approach to detect fences using multimodal aerial imagery},
+  author={Grimmer, Gauthier and Wenger, Romain and Chardon, Valentin},
+  journal={SoftwareX},
+  year={2024},
+  publisher={Elsevier}
+}
+```
 - `model_path`is the random forest model file path
 - `keep_all_outputs`, 1 to keep all outputs, 0 to delete them
 
