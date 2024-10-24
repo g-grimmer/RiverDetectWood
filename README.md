@@ -16,7 +16,7 @@ cd RiverDetectWood
 
 ### Prerequisites
 
-- Python 3.x
+- Python 3.9
 - `GDAL`
 - `Rasterio`
 - `Scipy`
@@ -31,7 +31,7 @@ We recommand to use Anaconda.
 ```bash
 conda create -n myenv python=3.9
 conda activate myenv
-conda install numpy gdal rasterio shapely geopandas scipy scikit-learn joblib
+conda install -c conda-forge numpy gdal rasterio shapely geopandas scipy scikit-learn joblib
 ```
 
 ### Install Orfeo Toolbox (OTB)
@@ -40,15 +40,14 @@ conda install numpy gdal rasterio shapely geopandas scipy scikit-learn joblib
 
 Firstly you have to install OTB from https://www.orfeo-toolbox.org/download/
 
-#### Set environment variable
+#### Execute otbenv.bat
 
-Here you must specify the path to the file otbcli_HaralickTextureExtraction.bat as follows. 
-This file is contained in the "bin" directory :
+Here you must execute the file otbenv.bat (or otbenv.profile on linux):
 
 On Windows 
 
 ```bash
-set OTB_BIN_PATH=C:\path\to\otb\bin\otbcli_HaralickTextureExtraction.bat"
+C:\path\to\otb\bin\otbenv.bat"
 ```
 
 On Linux
