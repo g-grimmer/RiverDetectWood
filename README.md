@@ -47,7 +47,7 @@ Here you must execute the file otbenv.bat (or otbenv.profile on linux):
 On Windows 
 
 ```bash
-C:\path\to\otb\bin\otbenv.bat"
+C:\path\to\otb\bin\otbenv.bat
 ```
 
 On Linux
