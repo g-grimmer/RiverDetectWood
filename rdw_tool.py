@@ -18,6 +18,7 @@ import os
 import platform
 from os.path import join
 from osgeo import gdal, ogr, osr
+from tqdm import tqdm 
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -186,11 +187,11 @@ def merge_indices_with_input(input_tiff, ndvi, brightness, texture_tiff, output_
     texture_dataset = None
     out_dataset = None
 
-from tqdm import tqdm  # Import tqdm for the progress bar
 
 def classify_correct_vectorize(raster_path, model_path, output_corrected_path, output_shapefile, value_to_keep=1, min_size=400, tile_size=512):
     """
-    Classify the raster using a Random Forest model, correct and vectorize the output, with optimizations to skip no-data areas and process in tiles.
+    Classify the raster using a Random Forest model, correct and vectorize the output,
+    with optimizations to skip no-data areas and process in tiles.
 
     Args:
         raster_path (str): Path to the merged raster.
@@ -224,21 +225,24 @@ def classify_correct_vectorize(raster_path, model_path, output_corrected_path, o
                 bands = [raster_ds.GetRasterBand(i+1).ReadAsArray(x, y, x_block_size, y_block_size) for i in range(7)]
                 stacked_bands = np.stack(bands, axis=2)
                 
-                # Create a no-data mask for the tile
+                # Create a no-data mask for the tile (True for no-data pixels)
                 no_data_mask = (stacked_bands[:, :, 0] == 0) & (stacked_bands[:, :, 1] == 0) & (stacked_bands[:, :, 2] == 0)
                 
-                # Flatten non-masked pixels and classify
-                masked_pixels = stacked_bands[~no_data_mask]
-                if masked_pixels.size == 0:
+                # Flatten non-masked pixels for classification
+                valid_pixels = stacked_bands[~no_data_mask]
+                if valid_pixels.size == 0:
                     pbar.update(1)
-                    continue  # Skip if the tile is entirely no-data
+                    continue  # Skip the tile if it contains only no-data pixels
                 
-                pixels = masked_pixels.reshape(-1, stacked_bands.shape[2])
+                # Reshape valid data and predict
+                pixels = valid_pixels.reshape(-1, stacked_bands.shape[2])
                 predictions = model.predict(pixels)
                 
-                # Reintegrate predictions into the predicted image array
+                # Create a prediction array for the tile and assign predictions only to valid pixels
                 tile_prediction = np.zeros((y_block_size, x_block_size), dtype=np.uint8)
                 tile_prediction[~no_data_mask] = predictions
+                
+                # Insert tile predictions into the full predicted image
                 predicted_image[y:y + y_block_size, x:x + x_block_size] = tile_prediction
 
                 # Update the progress bar after processing each tile
