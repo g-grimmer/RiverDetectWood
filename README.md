@@ -61,7 +61,7 @@ source /Path/To/OTB_install/otbenv.profile
 
 ### Download model and test files
 
-You can download the model file (.rf) and the test file (.tif) from this link: ...
+The RiverDetectWood tool has been tested on orthophotographs from three river basins in France: the Buech, Loire, and Doubs. These test datasets provide diverse conditions to validate the model's performance on dead wood detection in varying river environments.
 
 ### RiverDetectTool application
 
