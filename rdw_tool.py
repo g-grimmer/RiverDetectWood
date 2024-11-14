@@ -19,14 +19,18 @@ import platform
 from os.path import join
 from osgeo import gdal, ogr, osr
 
+import warnings
+warnings.filterwarnings("ignore")
+
 def calculate_ndvi(input_tiff):
-    """_summary_
+    """
+    Calculate the NDVI (Normalized Difference Vegetation Index) from a given input TIFF.
 
     Args:
-        input_tiff (_type_): _description_
+        input_tiff (str): Path to the input TIFF file.
 
     Returns:
-        _type_: _description_
+        np.array: NDVI array.
     """
     with gdal.config_option("CHECK_DISK_FREE_SPACE", "NO"):
         dataset = gdal.Open(input_tiff)
@@ -47,13 +51,14 @@ def calculate_ndvi(input_tiff):
         return ndvi_array
 
 def calculate_brightness(input_tiff):
-    """_summary_
+    """
+    Calculate the brightness index from the input TIFF.
 
     Args:
-        input_tiff (_type_): _description_
+        input_tiff (str): Path to the input TIFF file.
 
     Returns:
-        _type_: _description_
+        np.array: Brightness array.
     """
     with gdal.config_option("CHECK_DISK_FREE_SPACE", "NO"):
         dataset = gdal.Open(input_tiff)
@@ -74,28 +79,28 @@ def calculate_brightness(input_tiff):
         return brightness_array
 
 def calculate_texture(input_tiff, output_tiff):
-    """_summary_
+    """
+    Calculate texture indices (Haralick) using the Orfeo Toolbox (OTB).
 
     Args:
-        input_tiff (_type_): _description_
-        output_tiff (_type_): _description_
+        input_tiff (str): Path to the input TIFF.
+        output_tiff (str): Path to save the output texture TIFF.
 
     Raises:
-        EnvironmentError: _description_
-        OSError: _description_
+        EnvironmentError: If an error occurs when detecting the operating system.
+        OSError: If OTB is not supported on the current OS.
 
     Returns:
-        _type_: _description_
+        np.array: Array of texture bands.
     """
     otb_path = os.getenv('OTB_BIN_PATH')
     
-
     # Detect the operating system
     os_type = platform.system()
 
     if os_type == "Windows":
         command = [
-            os.path.join(otb_path, 'otbcli_HaralickTextureExtraction.bat'),
+            os.path.join('otbcli_HaralickTextureExtraction.bat'),
             "-in", input_tiff,
             "-channel", "2",
             "-parameters.xrad", "3",
@@ -133,16 +138,16 @@ def calculate_texture(input_tiff, output_tiff):
         print("Standard error:", e.stderr)
         return None
 
-
 def merge_indices_with_input(input_tiff, ndvi, brightness, texture_tiff, output_tiff):
-    """_summary_
+    """
+    Merge the input image with calculated NDVI, brightness, and texture indices.
 
     Args:
-        input_tiff (_type_): _description_
-        ndvi (_type_): _description_
-        brightness (_type_): _description_
-        texture_tiff (_type_): _description_
-        output_tiff (_type_): _description_
+        input_tiff (str): Path to the input TIFF.
+        ndvi (np.array): NDVI array.
+        brightness (np.array): Brightness array.
+        texture_tiff (str): Path to the texture TIFF.
+        output_tiff (str): Path to save the merged output TIFF.
     """
     input_dataset = gdal.Open(input_tiff)
     xsize = input_dataset.RasterXSize
@@ -181,42 +186,65 @@ def merge_indices_with_input(input_tiff, ndvi, brightness, texture_tiff, output_
     texture_dataset = None
     out_dataset = None
 
+from tqdm import tqdm  # Import tqdm for the progress bar
 
-def classify_correct_vectorize(raster_path, model_path, output_corrected_path, output_shapefile, value_to_keep=1, min_size=400):
-    """_summary_
+def classify_correct_vectorize(raster_path, model_path, output_corrected_path, output_shapefile, value_to_keep=1, min_size=400, tile_size=512):
+    """
+    Classify the raster using a Random Forest model, correct and vectorize the output, with optimizations to skip no-data areas and process in tiles.
 
     Args:
-        raster_path (_type_): _description_
-        model_path (_type_): _description_
-        output_corrected_path (_type_): _description_
-        output_shapefile (_type_): _description_
-        value_to_keep (int, optional): _description_. Defaults to 1.
-        min_size (int, optional): _description_. Defaults to 400.
+        raster_path (str): Path to the merged raster.
+        model_path (str): Path to the Random Forest model.
+        output_corrected_path (str): Path to save the corrected output.
+        output_shapefile (str): Path to save the vectorized output.
+        value_to_keep (int, optional): Value to retain in the output. Defaults to 1.
+        min_size (int, optional): Minimum polygon size to retain. Defaults to 400.
+        tile_size (int, optional): Size of the tiles (in pixels) to process independently. Defaults to 512.
     """
     
-    # Ouverture du raster et du modèle
+    # Open the raster and model
     raster_ds = gdal.Open(raster_path)
-    band1 = raster_ds.GetRasterBand(1)
-    band2 = raster_ds.GetRasterBand(2)
-    band3 = raster_ds.GetRasterBand(3)
-    band4 = raster_ds.GetRasterBand(4)
-    band5 = raster_ds.GetRasterBand(5)
-    band6 = raster_ds.GetRasterBand(6)
-    band7 = raster_ds.GetRasterBand(7)
+    model = joblib.load(model_path)
     
-    # Empilement des bandes et classification avec un modèle
-    stacked_bands = np.stack((band1.ReadAsArray(), band2.ReadAsArray(), band3.ReadAsArray(),
-                              band4.ReadAsArray(), band5.ReadAsArray(), band6.ReadAsArray(), 
-                              band7.ReadAsArray()), axis=2)
-    num_rows, num_cols, num_bands = stacked_bands.shape
-    pixels = stacked_bands.reshape(num_rows * num_cols, num_bands)
+    # Get raster dimensions and initialize output array
+    num_rows, num_cols = raster_ds.RasterYSize, raster_ds.RasterXSize
+    predicted_image = np.zeros((num_rows, num_cols), dtype=np.uint8)
     
-    # Chargement du modèle Random Forest et prédiction
-    rf_optimized = joblib.load(model_path)
-    predictions = rf_optimized.predict(pixels)
-    predicted_image = predictions.reshape(num_rows, num_cols)
+    # Calculate total number of tiles for the progress bar
+    total_tiles = ((num_rows + tile_size - 1) // tile_size) * ((num_cols + tile_size - 1) // tile_size)
+    
+    # Process the raster in tiles with a progress bar
+    with tqdm(total=total_tiles, desc="Processing tiles", unit="tile") as pbar:
+        for y in range(0, num_rows, tile_size):
+            for x in range(0, num_cols, tile_size):
+                y_block_size = min(tile_size, num_rows - y)
+                x_block_size = min(tile_size, num_cols - x)
+                
+                # Read and stack bands for the tile
+                bands = [raster_ds.GetRasterBand(i+1).ReadAsArray(x, y, x_block_size, y_block_size) for i in range(7)]
+                stacked_bands = np.stack(bands, axis=2)
+                
+                # Create a no-data mask for the tile
+                no_data_mask = (stacked_bands[:, :, 0] == 0) & (stacked_bands[:, :, 1] == 0) & (stacked_bands[:, :, 2] == 0)
+                
+                # Flatten non-masked pixels and classify
+                masked_pixels = stacked_bands[~no_data_mask]
+                if masked_pixels.size == 0:
+                    pbar.update(1)
+                    continue  # Skip if the tile is entirely no-data
+                
+                pixels = masked_pixels.reshape(-1, stacked_bands.shape[2])
+                predictions = model.predict(pixels)
+                
+                # Reintegrate predictions into the predicted image array
+                tile_prediction = np.zeros((y_block_size, x_block_size), dtype=np.uint8)
+                tile_prediction[~no_data_mask] = predictions
+                predicted_image[y:y + y_block_size, x:x + x_block_size] = tile_prediction
 
-    # Sauvegarde de l'image corrigée dans un nouveau raster
+                # Update the progress bar after processing each tile
+                pbar.update(1)
+
+    # Save the corrected image in a new raster
     driver = gdal.GetDriverByName("GTiff")
     corrected_ds = driver.Create(output_corrected_path, num_cols, num_rows, 1, gdal.GDT_Byte)
     corrected_ds.SetGeoTransform(raster_ds.GetGeoTransform())
@@ -229,51 +257,51 @@ def classify_correct_vectorize(raster_path, model_path, output_corrected_path, o
     corrected_ds.FlushCache()
     corrected_ds = None 
 
-    # Ouverture du fichier corrigé pour vectorisation
+    # Open the corrected file for vectorization
     corrected_ds = gdal.Open(output_corrected_path)
     band = corrected_ds.GetRasterBand(1)
     
-    # Création du shapefile de sortie
+    # Create the output shapefile
     shp_driver = ogr.GetDriverByName("ESRI Shapefile")
     shapefile_ds = shp_driver.CreateDataSource(output_shapefile)
     
-    # Définir la projection du shapefile
+    # Set shapefile projection
     srs = osr.SpatialReference()
     srs.ImportFromWkt(corrected_ds.GetProjection())
     
-    # Création de la couche de polygones
+    # Create polygon layer
     layer = shapefile_ds.CreateLayer(output_shapefile, srs=srs, geom_type=ogr.wkbPolygon)
     field_defn = ogr.FieldDefn("Class", ogr.OFTInteger)
     layer.CreateField(field_defn)
     
-    # Vectorisation avec GDAL Polygonize
+    # Vectorize with GDAL Polygonize
     gdal.Polygonize(band, None, layer, 0, [], callback=None)
     
     for feature in layer:
         geom = feature.GetGeometryRef()
         class_value = feature.GetFieldAsInteger("Class")
         
-        # Vérification si la classe est 1 et que la surface est supérieure au min_size
-        if class_value != 1:
+        # Check if the class is 1 and area is larger than min_size
+        if class_value != value_to_keep:
             layer.DeleteFeature(feature.GetFID())
     
-    # Fermeture des fichiers
+    # Close files
     shapefile_ds = None
     corrected_ds = None
     raster_ds = None
 
-    print(f"Les polygones avec la valeur {value_to_keep} ont été sauvegardés dans {output_shapefile}")
-
+    print(f"Polygons with value {value_to_keep} have been saved to {output_shapefile}")
 
 
 def calculer_volume(shapefile_path):
-    """_summary_
+    """
+    Calculate volume metrics for polygons in a shapefile.
 
     Args:
-        shapefile_path (_type_): _description_
+        shapefile_path (str): Path to the shapefile.
 
     Returns:
-        _type_: _description_
+        str: Path to the updated shapefile with calculated metrics.
     """
     gdf = gpd.read_file(shapefile_path)
 
@@ -294,35 +322,38 @@ def calculer_volume(shapefile_path):
         volume = c * longueur_emprise * (largeur_emprise ** 2) * (math.pi / 4)
         return volume
 
-    gdf['Aire_Polygone'] = gdf.geometry.apply(calculer_aire)
-    gdf['Longueur_Emprise'], gdf['Largeur_Emprise'], gdf['Aire_Emprise'] = zip(*gdf.geometry.apply(calculer_emprise_minimum))
-    gdf['Volume'] = gdf.apply(lambda row: calculer_volume_polygone(row.geometry, row['Aire_Polygone'], row['Longueur_Emprise'], row['Largeur_Emprise'], row['Aire_Emprise']), axis=1)
-    gdf['Aire_Polygone_Corrigée'] = 0.49 * gdf['Aire_Polygone'] ** 1.12
-    gdf['Longueur_Emprise_Corrigée'] = 0.88 * gdf['Longueur_Emprise'] ** 1.02
-    gdf['Largeur_Emprise_Corrigée'] = 0.48 * gdf['Largeur_Emprise'] ** 1.24
-    gdf['Volume_Corrigé'] = 0.24 * gdf['Volume'] ** 1.17
+    gdf['Polygon_Area'] = gdf.geometry.apply(calculer_aire)
+    gdf['Bounding_Length'], gdf['Bounding_Width'], gdf['Bounding_Area'] = zip(*gdf.geometry.apply(calculer_emprise_minimum))
+    gdf['Volume'] = gdf.apply(lambda row: calculer_volume_polygone(row.geometry, row['Polygon_Area'], row['Bounding_Length'], row['Bounding_Width'], row['Bounding_Area']), axis=1)
+    gdf['Corrected_Area'] = 0.49 * gdf['Polygon_Area'] ** 1.12
+    gdf['Corrected_Length'] = 0.88 * gdf['Bounding_Length'] ** 1.02
+    gdf['Corrected_Width'] = 0.48 * gdf['Bounding_Width'] ** 1.24
+    gdf['Corrected_Volume'] = 0.24 * gdf['Volume'] ** 1.17
 
-    appliquer_filtre = input("SWould you like to apply a filter to remove polygons whose length or width exceeds a certain threshold? (yes/no):")
-    if appliquer_filtre.lower() == 'yes':
-        seuil = float(input("Please enter the threshold size:"))
-        gdf = gdf[(gdf['Longueur_Emprise_Corrigée'] <= seuil) & (gdf['Largeur_Emprise_Corrigée'] <= seuil)]
-    gdf.drop(columns=['Aire_Emprise', 'Aire_Polygone', 'Longueur_Emprise', 'Largeur_Emprise', 'Volume'], inplace=True)
+    apply_filter = input("Would you like to apply a filter to remove polygons whose length or width exceeds a certain threshold? (yes/no):")
+    if apply_filter.lower() == 'yes':
+        threshold = float(input("Please enter the threshold size:"))
+        gdf = gdf[(gdf['Corrected_Length'] <= threshold) & (gdf['Corrected_Width'] <= threshold)]
+    gdf.drop(columns=['Bounding_Area', 'Polygon_Area', 'Bounding_Length', 'Bounding_Width', 'Volume'], inplace=True)
     gdf.rename(columns={
-        'Aire_Polygone_Corrigée': 'Aire',
-        'Longueur_Emprise_Corrigée': 'Longueur',
-        'Largeur_Emprise_Corrigée': 'Largeur',
-        'Volume_Corrigé': 'Volume'
+        'Corrected_Area': 'Area',
+        'Corrected_Length': 'Length',
+        'Corrected_Width': 'Width',
+        'Corrected_Volume': 'Volume'
     }, inplace=True)
     output_shapefile = shapefile_path.replace('.shp', '_metric.shp')
     gdf.to_file(output_shapefile)
     return output_shapefile
 
-
 def main():
+    """
+    Main function to process satellite images and calculate indices, classify, correct,
+    vectorize and compute volume metrics.
+    """
     parser = argparse.ArgumentParser(description="Process satellite images to extract and calculate various indices, classify, correct, vectorize and compute volume metrics.")
     parser.add_argument("input_tiff", help="Input TIFF file path.")
     parser.add_argument("model_path", help="Model path for classification.")
-    parser.add_argument("keep_all_outputs", help=" to keep all outputs, 0 to delete them")
+    parser.add_argument("keep_all_outputs", help="1 to keep all outputs, 0 to delete them")
 
     args = parser.parse_args()
     output_folder = join(os.getcwd(), 'outputs')
@@ -367,7 +398,5 @@ def main():
     print("[OUTPUTS] Deadwood binary: " + str(output_shapefile))
     print("[OUTPUTS] Deadwood metrics: " + str(shapefile_path))
 
-
 if __name__ == "__main__":
     main()
-
