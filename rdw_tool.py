@@ -94,8 +94,6 @@ def calculate_texture(input_tiff, output_tiff):
     os_type = platform.system()
 
     if os_type == "Windows":
-        if not otb_path:
-            raise EnvironmentError("OTB_BIN_PATH environment variable is not set.")
         command = [
             os.path.join(otb_path, 'otbcli_HaralickTextureExtraction.bat'),
             "-in", input_tiff,
@@ -120,19 +118,19 @@ def calculate_texture(input_tiff, output_tiff):
 
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
-        print("Commande exécutée avec succès")
-        print("Sortie standard:", result.stdout)
+        print("Command executed successfully.")
+        print("Standard output:", result.stdout)
         dataset = gdal.Open(output_tiff)
         if dataset is None:
-            print("Erreur : le fichier de texture n'a pas été créé correctement.")
+            print("Error: the texture file was not created correctly.")
             return None
         texture_band = dataset.GetRasterBand(1).ReadAsArray().astype(np.float32)
         dataset = None
         return texture_band
     except subprocess.CalledProcessError as e:
-        print("Erreur lors de l'exécution de la commande")
-        print("Code de retour:", e.returncode)
-        print("Erreur standard:", e.stderr)
+        print("Error while executing the command.")
+        print("Return code:", e.returncode)
+        print("Standard error:", e.stderr)
         return None
 
 
@@ -152,7 +150,7 @@ def merge_indices_with_input(input_tiff, ndvi, brightness, texture_tiff, output_
     num_bands = input_dataset.RasterCount
     texture_dataset = gdal.Open(texture_tiff)
     if texture_dataset is None:
-        print("Erreur : le fichier de texture n'a pas été ouvert correctement.")
+        print("Error: the texture file was not opened correctly.")
         return
     homogeneity_band = texture_dataset.GetRasterBand(4).ReadAsArray().astype(np.float32)
     entropy_band = texture_dataset.GetRasterBand(2).ReadAsArray().astype(np.float32)
@@ -304,9 +302,9 @@ def calculer_volume(shapefile_path):
     gdf['Largeur_Emprise_Corrigée'] = 0.48 * gdf['Largeur_Emprise'] ** 1.24
     gdf['Volume_Corrigé'] = 0.24 * gdf['Volume'] ** 1.17
 
-    appliquer_filtre = input("Souhaitez-vous appliquer un filtre pour supprimer les polygones dont la longueur ou la largeur dépasse un seuil ? (oui/non): ")
-    if appliquer_filtre.lower() == 'oui':
-        seuil = float(input("Veuillez saisir la taille du seuil: "))
+    appliquer_filtre = input("SWould you like to apply a filter to remove polygons whose length or width exceeds a certain threshold? (yes/no):")
+    if appliquer_filtre.lower() == 'yes':
+        seuil = float(input("Please enter the threshold size:"))
         gdf = gdf[(gdf['Longueur_Emprise_Corrigée'] <= seuil) & (gdf['Largeur_Emprise_Corrigée'] <= seuil)]
     gdf.drop(columns=['Aire_Emprise', 'Aire_Polygone', 'Longueur_Emprise', 'Largeur_Emprise', 'Volume'], inplace=True)
     gdf.rename(columns={
