@@ -22,6 +22,7 @@ cd RiverDetectWood
 - `Scipy`
 - `Joblib`
 - `Geopandas`
+- `Tqdm`
 - Orfeo Toolbox (OTB) version 9.x
 
 ### Install Python Packages
@@ -31,7 +32,7 @@ We recommand to use Anaconda.
 ```bash
 conda create -n myenv python=3.9
 conda activate myenv
-conda install -c conda-forge numpy gdal rasterio shapely geopandas scipy scikit-learn joblib
+conda install -c conda-forge numpy gdal rasterio shapely geopandas scipy scikit-learn joblib tqdm
 ```
 
 ### Install Orfeo Toolbox (OTB)
