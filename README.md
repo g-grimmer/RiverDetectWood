@@ -57,6 +57,22 @@ On linux, you can follow the steps describe on OTB official website. Basically, 
 ```bash
 source /Path/To/OTB_install/otbenv.profile
 ```
+
+### Potential installation error
+
+If you encounter this error:
+
+```bash
+  File "pyproj\\_crs.pyx", line 2378, in pyproj._crs._CRS.__init__
+pyproj.exceptions.CRSError: Invalid projection: EPSG:2154: (Internal Proj Error: proj_create: no database context specified)
+```
+
+Reinstall pyproj using pip:
+
+```bash
+pip install --force-reinstall pyproj
+```
+
 ## Usage
 
 ### Download model and test files
