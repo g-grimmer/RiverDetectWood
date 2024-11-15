@@ -96,10 +96,10 @@ If you use this repository in your research, please cite the corresponding paper
 
 ```
 @article{grimmer2024deadwood,
-  title={...},
+  title={RiverDetectWood: A Tool for Automatic Detection and Quantification of Dead Wood in River Systems Using Very High Spatial Resolution Aerial Photographs},
   author={Grimmer, Gauthier and Wenger, Romain and Chardon, Valentin},
-  journal={SoftwareX},
+  journal={},
   year={2024},
-  publisher={Elsevier}
+  publisher={}
 }
 ```
