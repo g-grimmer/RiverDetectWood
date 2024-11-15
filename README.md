@@ -83,7 +83,7 @@ The RiverDetectWood tool has been tested on orthophotographs from three river ba
 ### RiverDetectTool application
 
 ```bash
-python rdw_tool.py input_tiff_path output_tiff_text_path keep_all_outputs
+python rdw_tool.py input_tiff_path model_path keep_all_outputs
 ```
 In this function :
 - `input_tiff_path` is the orthophotograph path
