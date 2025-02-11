@@ -3,6 +3,8 @@
 This Python script allows to detect river dead wood using IGN BD Ortho data. Firstly, it calculates indexes to be added to orthophotographs. Secondly it applies the random forest model on the orthophotographs. Finally, it output a shapefile layer with dead wood polygons and their metrics. 
 This tool only works on Windows or Linux.
 
+This tool is under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
 ## Clone the repository
 
 Firstly you need to clone the repository :
