@@ -97,11 +97,27 @@ In this function :
 If you use this repository in your research, please cite the corresponding paper:
 
 ```
-@article{grimmer2024deadwood,
-  title={RiverDetectWood: A Tool for Automatic Detection and Quantification of Dead Wood in River Systems Using Very High Spatial Resolution Aerial Photographs},
+@article{grimmer2025envModSoft,
+  title={Automatic detection of in-stream river wood from random forest machine learning and exogenous indices using very high-resolution aerial imagery},
+  author={Grimmer, Gauthier and Wenger, Romain and Forestier, Germain and Chardon, Valentin},
+  journal={Environmental Modelling & Software},
+  volume={},
+  pages={},
+  year={2025},
+  publisher={Elsevier}
+}
+```
+
+and/or
+
+```
+@article{grimmer2025riverdetectwood,
+  title={RiverDetectWood: A tool for automatic classification and quantification of river wood in river systems using aerial imagery},
   author={Grimmer, Gauthier and Wenger, Romain and Chardon, Valentin},
-  journal={},
-  year={2024},
-  publisher={}
+  journal={SoftwareX},
+  volume={29},
+  pages={102042},
+  year={2025},
+  publisher={Elsevier}
 }
 ```
