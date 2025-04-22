@@ -97,12 +97,11 @@ In this function :
 If you use this repository in your research, please cite the corresponding paper:
 
 ```
-@article{grimmer2025envModSoft,
+@article{grimmer2025automatic,
   title={Automatic detection of in-stream river wood from random forest machine learning and exogenous indices using very high-resolution aerial imagery},
   author={Grimmer, Gauthier and Wenger, Romain and Forestier, Germain and Chardon, Valentin},
-  journal={Environmental Modelling & Software},
-  volume={},
-  pages={},
+  journal={Environmental Modelling \& Software},
+  pages={106460},
   year={2025},
   publisher={Elsevier}
 }
